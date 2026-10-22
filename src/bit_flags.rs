@@ -1,4 +1,3 @@
-
 /*
 Job state is stored in one u32
 
