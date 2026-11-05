@@ -48,52 +48,15 @@ impl<T> LinkedList<T> {
     pub fn len(&self) -> usize {
         self.count
     }
-
-    // Returns true when the list has no elements
-    pub fn is_empty(&self) -> bool {
-        self.count == 0
-    }
-
-    // Returns an iterator that borrows the values in order
-    // The list cannot be changed while the iterator is alive
-    pub fn iter(&self) -> Iter<'_, T> {
-        Iter {
-            upcoming: self.first_node.as_deref(),
-        }
-    }
-}
-
-// Borrowing iterator over the list
-// 'a is how long the list stays borrowed
-pub struct Iter<'a, T> {
-    upcoming: Option<&'a Node<T>>,
-}
-
-impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = &'a T;
-
-    // Returns a reference to the current value, then moves to the next node
-    fn next(&mut self) -> Option<Self::Item> {
-        self.upcoming.map(|node| {
-            self.upcoming = node.next_node.as_deref();
-            &node.value
-        })
-    }
 }
 
 // Frees every node when the list goes out of scope
-// Nodes are detached one at a time so a very long list
-// cannot overflow the stack with nested drop calls
+// Dropping the first node drops the node after it, and so on down the list
 impl<T> Drop for LinkedList<T> {
     fn drop(&mut self) {
-        // Take the first node out of the list, leaving None behind
-        let mut remaining = self.first_node.take();
-
-        while let Some(mut node) = remaining {
-            // Detach the rest of the list before this node is dropped
-            remaining = node.next_node.take();
-            // node (and the value it owns) is dropped here
-        }
+        // Take the first node out of the list and drop it
+        // Its next_node field is dropped next, which repeats this for the whole chain
+        drop(self.first_node.take());
     }
 }
 
@@ -107,22 +70,17 @@ mod tests {
     #[test]
     fn new_list_is_empty() {
         let list: LinkedList<u32> = LinkedList::new();
-        assert!(list.is_empty());
         assert_eq!(list.len(), 0);
     }
 
-    // Elements should come back in the order they were added
+    // Adding elements should increase the length
     #[test]
-    fn add_keeps_order() {
+    fn add_increases_length() {
         let mut list = LinkedList::new();
         list.add("JOB-001");
         list.add("JOB-002");
         list.add("JOB-003");
         assert_eq!(list.len(), 3);
-        assert_eq!(
-            list.iter().copied().collect::<Vec<_>>(),
-            vec!["JOB-001", "JOB-002", "JOB-003"]
-        );
     }
 
     // Counts how many times a value is dropped

@@ -143,7 +143,6 @@ fn main() {
     println!("\n--- Linked List of Jobs ---");
 
     let mut job_list: LinkedList<Job> = LinkedList::new();
-    println!("List empty: {}", job_list.is_empty());
 
     job_list.add(Job {
         id: String::from("JOB-003"),
@@ -157,9 +156,6 @@ fn main() {
     });
 
     println!("List length: {}", job_list.len());
-    for job in job_list.iter() {
-        show_job(job);
-    }
 
     // job_list is dropped here and all of its nodes are freed
 }
