@@ -1,9 +1,12 @@
 mod bit_flags;
 mod job_lifetimes;
+mod job_queue;
 
 use job_lifetimes::{
     Job, JobAssignment, Worker, get_worker_job, same_job, show_assignment, show_job, show_worker,
 };
+
+use job_queue::LinkedList;
 
 fn process_job_id(job_id: String) {
     println!("Processing job: {}", job_id);
@@ -22,7 +25,7 @@ fn main() {
 
     // process_job_id(job_id);
 
-    // This would NOT work because ownership moved:
+    // This would not work because ownership moved:
     // println!("{}", job_id);
 
     // let max_workers: i32 = 4;
@@ -132,4 +135,31 @@ fn main() {
     // We can still access the job information
     println!("Job 1 description: {}", job1.description);
     println!("Job 2 estimated time: {} minutes", job2.estimated_time);
+
+    // ----------------------------------------
+    // New assignment: Linked Data Structure
+    // ----------------------------------------
+
+    println!("\n--- Linked List of Jobs ---");
+
+    let mut job_list: LinkedList<Job> = LinkedList::new();
+    println!("List empty: {}", job_list.is_empty());
+
+    job_list.add(Job {
+        id: String::from("JOB-003"),
+        description: String::from("Send notifications"),
+        estimated_time: 5,
+    });
+    job_list.add(Job {
+        id: String::from("JOB-004"),
+        description: String::from("Clean up temp files"),
+        estimated_time: 10,
+    });
+
+    println!("List length: {}", job_list.len());
+    for job in job_list.iter() {
+        show_job(job);
+    }
+
+    // job_list is dropped here and all of its nodes are freed
 }
